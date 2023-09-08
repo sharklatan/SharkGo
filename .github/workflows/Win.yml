@@ -23,11 +23,12 @@ jobs:
         with:
           dotnet-version: '6.x' # Usa la versión apropiada
           
-      - name: Build and Publish .NET 6.0
+      - name: Build .NET 6.x
         run: |
           dotnet restore
           dotnet build --configuration Release --framework net6.0
-          dotnet publish --configuration Release --framework net6.0 --output ./publish/net6.0
+          dotnet publish --configuration Release --framework net6.0 --output ./Sharkgo/publish/net6.0
+          working-directory: ./SharkGo
 
       - name: Compress Files
         run: |
@@ -36,7 +37,7 @@ jobs:
           cd ../..
 
       - name: List files in publish directory
-        run: ls -R ./SharkGo/publish/net6.0
+        run: ls -R ./SharkGo
 
       - name: Upload Release Artifact .NET 6.0 and Compressed Files
         uses: actions/upload-artifact@v2
