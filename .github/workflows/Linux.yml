@@ -1,0 +1,70 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Linux
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+          
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.x' # Usa la versión apropiada
+          
+      - name: Build .NET 6.x
+        run: |
+          ls -R
+          cd SharkGo  # Navega al directorio que contiene SharkGo.csproj
+          ls -R
+          dotnet restore
+          dotnet build --configuration Release --framework net6.0
+          dotnet publish --configuration Release --framework net6.0 --output ./publish/net6.0
+      - name: Compress Files
+        run: |
+          cd ./SharkGo/publish/net6.0
+          tar -czvf ../SharkGoFiles.tar.gz *
+          cd ../..
+          
+      - name: List files in publish directory
+        run: ls -R ./SharkGo/publish/net6.0
+
+      - name: Upload Release Artifact .NET 6.0 and Compressed Files
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-artifact-net6.0
+          path: |
+            ./SharkGo/publish
+            
+      - name: Create Or Update Release
+        id: create_release
+        uses: joutvhu/create-release@v1.0.0
+        with:
+          tag_name: Beta
+          name: Beta Release
+          draft: false
+          on_release_exists: update
+          remove_assets: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Asset
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./SharkGo/publish/SharkGoFiles.tar.gz
+          asset_name: SharkGo_Beta-Linux-x64.tar.gz
+          tag: ${{ steps.create_release.outputs.tag_name }}  # Obtén el nombre de la etiqueta del paso anterior
+          overwrite: true  # Sobrescribe el archivo si ya existe en el lanzamiento
