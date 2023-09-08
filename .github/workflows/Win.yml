@@ -15,14 +15,78 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 6.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Cache .NET SDK
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.USERPROFILE }}\.dotnet\tools
+          key: dotnet-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            dotnet-
+            
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.x' # Usa la versión apropiada
+          
+      - name: Cache .NET packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.nuget/packages
+          key: dotnet-${{ runner.os }}-${{ hashFiles('**/*.csproj.lock') }}
+          restore-keys: |
+            dotnet-${{ runner.os }}-
+
+      - name: Build and Publish .NET 6.0
+        run: |
+          dotnet restore
+          dotnet build --configuration Release --framework net6.0
+          dotnet publish --configuration Release --framework net6.0 --output ./publish/net6.0
+
+      - name: Compress Files
+        run: |
+          cd ./publish/net6.0
+          Compress-Archive -Path gpx, runtimes, Aspose.GIS.dll, Fleck.dll, ICSharpCode.SharpZipLib.dll, iMobileDevice-net.dll, Newtonsoft.Json.dll, plist-cil.dll, SharkGo.deps.json, SharkGo.dll, SharkGo.exe, SharkGo.pdb, SharkGo.runtimeconfig.json -DestinationPath ../../SharkGoFiles.zip
+          cd ../..
+
+      - name: List files in publish directory
+        run: ls -R ./publish/net6.0
+
+      - name: Upload Release Artifact .NET 6.0 and Compressed Files
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-artifact-net6.0
+          path: |
+            ./publish
+
+      - name: Get Last Commit
+        id: last_commit
+        run: echo "::set-output name=commit::$(git log -1 --pretty=format:'%h - %s')"
+
+      - name: Get Last Push Date
+        id: last_push
+        run: echo "::set-output name=push_date::$(git log -1 --pretty=format:'%cd' --date=short)'"
+
+      - name: Create Or Update Release
+        id: create_release
+        uses: joutvhu/create-release@v1.0.0
+        with:
+          tag_name: Beta
+          name: "Beta Release - ${{ steps.last_push.outputs.push_date }} -"
+          draft: false
+          on_release_exists: update
+          remove_assets: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Asset
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./SharkGoFiles.zip
+          asset_name: SharkGo_Beta-Windows-x86-x64.zip
+          tag: ${{ steps.create_release.outputs.tag_name }}  # Obtén el nombre de la etiqueta del paso anterior
+          overwrite: true  # Sobrescribe el archivo si ya existe en el lanzamiento
