@@ -48,6 +48,7 @@ jobs:
 
       - name: Compress Files
         run: |
+          ls -R 
           cd ./publish/net6.0
           Compress-Archive -Path gpx, runtimes, Aspose.GIS.dll, Fleck.dll, ICSharpCode.SharpZipLib.dll, iMobileDevice-net.dll, Newtonsoft.Json.dll, plist-cil.dll, SharkGo.deps.json, SharkGo.dll, SharkGo.exe, SharkGo.pdb, SharkGo.runtimeconfig.json -DestinationPath ../../SharkGoFiles.zip
           cd ../..
