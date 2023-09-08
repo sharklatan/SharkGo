@@ -65,11 +65,11 @@ jobs:
 
       - name: Get Last Commit
         id: last_commit
-        run: echo "::set-output name=commit::$(git log -1 --pretty=format:'%h - %s')"
+        run: echo "commit=$(git log -1 --pretty=format:'%h - %s')" >> $GITHUB_OUTPUT
 
       - name: Get Last Push Date
         id: last_push
-        run: echo "::set-output name=push_date::$(git log -1 --pretty=format:'%cd' --date=short)'"
+        run: echo "push_date=$(git log -1 --pretty=format:'%cd' --date=short)'" >> $GITHUB_OUTPUT
 
       - name: Create Or Update Release
         id: create_release
