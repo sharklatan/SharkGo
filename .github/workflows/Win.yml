@@ -16,29 +16,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Cache .NET SDK
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.USERPROFILE }}\.dotnet\tools
-          key: dotnet-${{ hashFiles('**/*.csproj') }}
-          restore-keys: |
-            dotnet-
-            
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '6.x' # Usa la versión apropiada
           
-      - name: Cache .NET packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.nuget/packages
-          key: dotnet-${{ runner.os }}-${{ hashFiles('**/*.csproj.lock') }}
-          restore-keys: |
-            dotnet-${{ runner.os }}-
-
       - name: Build and Publish .NET 6.0
         run: |
           cd SharkGo
@@ -71,12 +55,26 @@ jobs:
         id: last_push
         run: echo "push_date=$(git log -1 --pretty=format:'%cd' --date=short)'" >> $GITHUB_OUTPUT
 
-      - name: Create and Upload Release
-        uses: softprops/action-gh-release@v1
+      - name: Upload Release Asset
+        uses: svenstaro/upload-release-action@v2
         with:
-          files: ./SharkGo/SharkGoFiles.zip
-          tag_name: Beta
-          name: "Beta Release - ${{ steps.last_push.outputs.push_date }}"
-          overwrite: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./SharkGo/SharkGoFiles.zip
+          asset_name: SharkGo_Beta-Windows-x86-x64.zip
+          #tag: ${{ steps.create_release.outputs.tag_name }}  # Obtén el nombre de la etiqueta del paso anterior
+          tag: Beta
+          overwrite: true  # Sobrescribe el archivo si ya existe en el lanzamiento        
+
+      - name: Create Or Update Release
+        id: create_release
+        uses: joutvhu/create-release@v1.0.0
+        with:
+          tag_name: Auto
+          name: "Beta Release - ${{ steps.last_push.outputs.push_date }} -"
+          draft: false
+          on_release_exists: update
+          remove_assets: false
+          prerelease: true
+    env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
