@@ -16,29 +16,27 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
+        uses: actions/checkout@v2
+          
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v2
         with:
           dotnet-version: '6.x' # Usa la versión apropiada
           
       - name: Build and Publish .NET 6.0
         run: |
-          cd SharkGo
           dotnet restore
           dotnet build --configuration Release --framework net6.0
           dotnet publish --configuration Release --framework net6.0 --output ./publish/net6.0
 
       - name: Compress Files
         run: |
-          #ls -R 
           cd ./SharkGo/publish/net6.0
           Compress-Archive -Path gpx, runtimes, Aspose.GIS.dll, Fleck.dll, ICSharpCode.SharpZipLib.dll, iMobileDevice-net.dll, Newtonsoft.Json.dll, plist-cil.dll, SharkGo.deps.json, SharkGo.dll, SharkGo.exe, SharkGo.pdb, SharkGo.runtimeconfig.json -DestinationPath ../../SharkGoFiles.zip
           cd ../..
 
       - name: List files in publish directory
-        run: ls -R ./SharkGo
+        run: ls -R ./SharkGo/publish/net6.0
 
       - name: Upload Release Artifact .NET 6.0 and Compressed Files
         uses: actions/upload-artifact@v2
@@ -55,20 +53,20 @@ jobs:
         id: last_push
         run: echo "push_date=$(git log -1 --pretty=format:'%cd' --date=short)'" >> $GITHUB_OUTPUT
 
-      - name: Update Release
+      - name: Create Or Update Release
         id: create_release
         uses: joutvhu/create-release@v1.0.0
         with:
-          tag_name: Auto
+          tag_name: Beta
           name: "Beta Release - ${{ steps.last_push.outputs.push_date }} -"
           draft: false
           on_release_exists: update
           remove_assets: false
           prerelease: true
-    env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-     - name: Upload Files
+      - name: Upload Release Asset
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -76,6 +74,3 @@ jobs:
           asset_name: SharkGo_Beta-Windows-x86-x64.zip
           tag: ${{ steps.create_release.outputs.tag_name }}  # Obtén el nombre de la etiqueta del paso anterior
           overwrite: true  # Sobrescribe el archivo si ya existe en el lanzamiento
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
