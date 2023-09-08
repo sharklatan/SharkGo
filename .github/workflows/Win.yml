@@ -27,7 +27,7 @@ jobs:
             dotnet-
             
       - name: Setup .NET
-        uses: actions/setup-dotnet@v2
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '6.x' # Usa la versión apropiada
           
@@ -41,6 +41,7 @@ jobs:
 
       - name: Build and Publish .NET 6.0
         run: |
+          cd SharkGo
           dotnet restore
           dotnet build --configuration Release --framework net6.0
           dotnet publish --configuration Release --framework net6.0 --output ./publish/net6.0
