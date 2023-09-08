@@ -26,9 +26,9 @@ jobs:
       - name: Build .NET 6.x
         run: |
           dotnet restore
-          dotnet build --configuration Release --framework net6.0
-          dotnet publish --configuration Release --framework net6.0 --output ./Sharkgo/publish/net6.0
-          working-directory: ./SharkGo/SharkGo
+          dotnet build SharkGo/SharkGo.csproj --configuration Release --framework net6.0 
+          dotnet publish SharkGo/SharkGo.csproj --configuration Release --framework net6.0 --output ./Sharkgo/publish/net6.0
+
 
       - name: Compress Files
         run: |
