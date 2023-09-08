@@ -3,6 +3,7 @@ SharkGo - A Free iSpoofer without Jailbreak.
 
 [![Win](https://github.com/sharklatan/SharkGo/actions/workflows/Win.yml/badge.svg)](https://github.com/sharklatan/SharkGo/actions/workflows/Win.yml)
 [![macOS](https://github.com/sharklatan/SharkGo/actions/workflows/macOS.yml/badge.svg)](https://github.com/sharklatan/SharkGo/actions/workflows/macOS.yml)
+[![Linux](https://github.com/sharklatan/SharkGo/actions/workflows/Linux.yml/badge.svg)](https://github.com/sharklatan/SharkGo/actions/workflows/Linux.yml)
 
 ![1](https://github.com/sharklatan/SharkGo/assets/5210221/784e65c6-e6c9-47cc-8d2a-ab77a551c01c)
 
