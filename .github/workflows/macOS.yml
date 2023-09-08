@@ -26,8 +26,8 @@ jobs:
       - name: Build .NET 6.x
         run: |
           dotnet restore
-          dotnet build SharkGo/SharkGo.csproj --configuration Release --framework net6.0 
-          dotnet publish SharkGo/SharkGo.csproj --configuration Release --framework net6.0 --output ./Sharkgo/publish/net6.0
+          dotnet build SharkGo.csproj --configuration Release --framework net6.0 
+          dotnet publish SharkGo.csproj --configuration Release --framework net6.0 --output ./Sharkgo/publish/net6.0
 
       - name: List files before unzip
         run: ls -R /Users/runner/work/SharkGo/
