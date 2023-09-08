@@ -43,7 +43,7 @@ jobs:
       - name: Compress Files
         run: |
           cd ./publish/net6.0
-          Compress-Archive -Path Resources, runtimes, ICSharpCode.SharpZipLib.dll, iMobileDevice-net.dll, Newtonsoft.Json.dll, plist-cil.dll, SharkGo.deps.json, SharkGo.dll, SharkGo.exe, SharkGo.pdb, SharkGo.runtimeconfig.json -DestinationPath ../../SharkGoFiles.zip
+          Compress-Archive -Path runtimes, ICSharpCode.SharpZipLib.dll, iMobileDevice-net.dll, Newtonsoft.Json.dll, plist-cil.dll, SharkGo.deps.json, SharkGo.dll, SharkGo.exe, SharkGo.pdb, SharkGo.runtimeconfig.json -DestinationPath ../../SharkGoFiles.zip
           cd ../..
 
       - name: List files in publish directory
