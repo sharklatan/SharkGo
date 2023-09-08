@@ -46,20 +46,12 @@ jobs:
           path: |
             ./SharkGo/publish
 
-      - name: Get Last Commit
-        id: last_commit
-        run: echo "commit=$(git log -1 --pretty=format:'%h - %s')" >> $GITHUB_OUTPUT
-
-      - name: Get Last Push Date
-        id: last_push
-        run: echo "push_date=$(git log -1 --pretty=format:'%cd' --date=short)'" >> $GITHUB_OUTPUT
-
       - name: Create Or Update Release
         id: create_release
         uses: joutvhu/create-release@v1.0.0
         with:
           tag_name: Beta
-          name: "Beta Release - ${{ steps.last_push.outputs.push_date }} -"
+          name: Beta Release
           draft: false
           on_release_exists: update
           remove_assets: false
