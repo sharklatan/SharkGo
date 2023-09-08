@@ -55,17 +55,7 @@ jobs:
         id: last_push
         run: echo "push_date=$(git log -1 --pretty=format:'%cd' --date=short)'" >> $GITHUB_OUTPUT
 
-      - name: Upload Release Asset
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./SharkGo/SharkGoFiles.zip
-          asset_name: SharkGo_Beta-Windows-x86-x64.zip
-          #tag: ${{ steps.create_release.outputs.tag_name }}  # Obtén el nombre de la etiqueta del paso anterior
-          tag: Beta
-          overwrite: true  # Sobrescribe el archivo si ya existe en el lanzamiento        
-
-      - name: Create Or Update Release
+      - name: Update Release
         id: create_release
         uses: joutvhu/create-release@v1.0.0
         with:
@@ -77,4 +67,15 @@ jobs:
           prerelease: true
     env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+     - name: Upload Files
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./SharkGo/SharkGoFiles.zip
+          asset_name: SharkGo_Beta-Windows-x86-x64.zip
+          tag: ${{ steps.create_release.outputs.tag_name }}  # Obtén el nombre de la etiqueta del paso anterior
+          overwrite: true  # Sobrescribe el archivo si ya existe en el lanzamiento
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
