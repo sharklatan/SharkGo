@@ -48,13 +48,13 @@ jobs:
 
       - name: Compress Files
         run: |
-          ls -R 
+          #ls -R 
           cd ./SharkGo/publish/net6.0
           Compress-Archive -Path gpx, runtimes, Aspose.GIS.dll, Fleck.dll, ICSharpCode.SharpZipLib.dll, iMobileDevice-net.dll, Newtonsoft.Json.dll, plist-cil.dll, SharkGo.deps.json, SharkGo.dll, SharkGo.exe, SharkGo.pdb, SharkGo.runtimeconfig.json -DestinationPath ../../SharkGoFiles.zip
           cd ../..
 
       - name: List files in publish directory
-        run: ls -R ./SharkGo/publish/net6.0
+        run: ls -R ./SharkGo
 
       - name: Upload Release Artifact .NET 6.0 and Compressed Files
         uses: actions/upload-artifact@v2
@@ -74,7 +74,7 @@ jobs:
       - name: Create and Upload Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./SharkGoFiles.zip
+          files: ./SharkGo/SharkGoFiles.zip
           tag_name: Beta
           name: "Beta Release - ${{ steps.last_push.outputs.push_date }}"
           overwrite: true
