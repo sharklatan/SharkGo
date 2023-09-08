@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net4.8;net6.0</TargetFrameworks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Version>2.0</Version>
+    <LangVersion>latest</LangVersion>
+    <ApplicationIcon>mapa.ico</ApplicationIcon>
+    <SignAssembly>False</SignAssembly>
+    <Copyright>SharkGo.SharkLatan.com</Copyright>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Description>SharkGo.SharkLatan.com</Description>
+    <Company>SharkLatan.com</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Resources/**/*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+	  <Content Include="gpx/**/*.*">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>	  
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Resources\**" />
+    <Content Remove="Resources\**" />
+    <EmbeddedResource Remove="Resources\**" />
+    <None Remove="Resources\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="mapa.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspose.GIS" Version="23.7.0" />
+    <PackageReference Include="Fleck" Version="1.2.0" />
+    <PackageReference Include="iMobileDevice-net" Version="1.2.77" />
+    <PackageReference Include="MimeTypes" Version="2.2.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="plist-cil" Version="2.2.0" />
+    <PackageReference Include="SharpZipLib" Version="1.3.3" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="gpx\route\pier.gpx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
