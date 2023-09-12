@@ -447,10 +447,9 @@ namespace SharkGo
 
                     Debug.WriteLine("Selected File Path: " + gpxFilePath); //console log patch file
                     Console.WriteLine("Selected Route: " + gpxFilePath);
-                    // line 413
-                    // Crea un ArrayList vacío cada vez que se ejecuta esta función
-                    ArrayList points = new ArrayList();
 
+                    //Array points for infinite Route
+                    ArrayList points = new ArrayList();
                     // Realiza la operación para obtener nuevos elementos en el ArrayList
                     points = getGPX();
                     if (points.Count == 0)
@@ -546,15 +545,15 @@ namespace SharkGo
             {
                 using (var sr = new StreamReader(ctx.Request.InputStream, ctx.Request.ContentEncoding))
                 {
-                    // Read the JSON body
+                    // Leer el cuerpo JSON
                     dynamic data = JsonConvert.DeserializeObject<dynamic>(sr.ReadToEnd());
                     DeviceInformation device;
 
-                    // Find the matching device udid
+                    // Encontrar el dispositivo con udid coincidente
                     lock (Devices)
                         device = Devices.FirstOrDefault(d => d.UDID == (string)data.udid);
 
-                    // Check if we already have the dependencies
+                    // Comprobar si ya tenemos las dependencias
                     if (device == null)
                     {
                         SetResponse(ctx,
@@ -564,7 +563,7 @@ namespace SharkGo
                     {
                         try
                         {
-                            // Check if developer mode toggle is visible (on >= iOS 16)
+                            // Comprobar si el interruptor de modo desarrollador está visible (en >= iOS 16)
                             if (device.GetDeveloperModeToggleState() ==
                                 DeviceInformation.DeveloperModeToggleState.Hidden)
                             {
@@ -575,74 +574,58 @@ namespace SharkGo
                                         error = "Please turn on Developer Mode first via Settings >> Privacy & Security on your device."
                                     });
                             }
-                            // Ensure the developer image exists
+                            // Asegurarse de que la imagen del desarrollador existe
                             else if (DeveloperImageHelper.HasImageForDevice(device, out var p))
                             {
                                 device.EnableDeveloperMode(p[0], p[1]);
-                                // I think all of this has to be put in a thread, that way I can use Thread.Sleep()
-                                // and this part of the code will pause like it's supposed to, but won't freeze the UI.
-                                ThreadPool.QueueUserWorkItem(delegate {
+                                ThreadPool.QueueUserWorkItem(delegate
+                                {
                                     isWalking = true;
                                     ArrayList points = getGPX();
                                     ArrayList interPoints = new ArrayList();
-                                    double totalDistance = 0;
                                     double speed = pathTraversalSpeed;
                                     double timeBetweenIntervals = 1;
 
-                                    // Get total distance to determine how many intermediate points there will be
-                                    Console.WriteLine("Calculating total distance.");
-                                    for (int i = 0; i < points.Count - 1; i++)
-                                    {
-                                        PointLatLng first = (PointLatLng)points[i];
-                                        PointLatLng next = (PointLatLng)points[i + 1];
-                                        totalDistance += calculateDistanceBetweenLocations(first, next) * 1000; // Convert to meters
-                                    }
-                                    Console.WriteLine("Total distance for this path: {0} meters.", totalDistance);
+                                    int i = 0; // Índice para controlar los puntos del recorrido
 
-                                    // Calculate total time to travel
-                                    double totalTime = totalDistance / speed;
-                                    Console.WriteLine("Total time to travel this path: {0} seconds, {1} minutes.", totalTime, totalTime / 60);
-
-                                    for (int i = 0; i < points.Count - 1; i++)
+                                    while (isWalking)
                                     {
-                                        if (!isWalking)
-                                        {
-                                            SetResponse(ctx, new { success = true });
-                                            return;
-                                        }
                                         Console.Write("\nCalculating a new point. {0}", i);
-                                        // Console.Write("\n\nCalculating a new point. i = {0}", i);
                                         PointLatLng first = (PointLatLng)points[i];
                                         PointLatLng next = (PointLatLng)points[i + 1];
                                         double bearing = calculateBearing(first, next);
                                         double travelledSegmentDistance = 0;
-                                        double segmentDistance = calculateDistanceBetweenLocations(first, next) * 1000; // Convert to meters
+                                        double segmentDistance = calculateDistanceBetweenLocations(first, next) * 1000; // Convertir a metros
 
                                         while ((travelledSegmentDistance < segmentDistance) && isWalking)
                                         {
-                                            // Console.WriteLine("\nStarted new while loop.");
-                                            // Console.WriteLine("Travelled segment distance: {0}", travelledSegmentDistance);
                                             double distanceToTravel = speed * timeBetweenIntervals;
-                                            PointLatLng nextLocation = calculateDestinationLocation(first, bearing, distanceToTravel / 1000); // The function expects the distance argument to be in kilometers
-                                            // Console.WriteLine("Distance between points: {0}", calculateDistanceBetweenLocations(first, nextLocation));
-                                            travelledSegmentDistance += calculateDistanceBetweenLocations(first, nextLocation) * 1000; // Convert to meters
-                                            // Console.WriteLine("Travelled segment distance: {0}. Segment distance: {1}", travelledSegmentDistance, segmentDistance);
+                                            PointLatLng nextLocation = calculateDestinationLocation(first, bearing, distanceToTravel / 1000); // La función espera que el argumento de distancia esté en kilómetros
+                                            travelledSegmentDistance += calculateDistanceBetweenLocations(first, nextLocation) * 1000; // Convertir a metros
 
                                             if (travelledSegmentDistance > segmentDistance)
                                             {
-                                                break; // Move to the next point in the gpx
+                                                break; // Mover al siguiente punto en el gpx
                                             }
                                             device.SetLocation(nextLocation);
-                                            webSocketManager.EnviarCoordenadas(nextLocation.Lat, nextLocation.Lng); //Send WebSocket
+                                            webSocketManager.EnviarCoordenadas(nextLocation.Lat, nextLocation.Lng); // Enviar WebSocket
 
-                                            // SetResponse(ctx, new { success = true });
                                             first = nextLocation;
                                             Thread.Sleep((int)(timeBetweenIntervals * 1000));
                                         }
+
+                                        i++; // Avanzar al siguiente punto
+
+                                        if (i >= points.Count - 1)
+                                        {
+                                            i = 0; // Volver al principio de la lista cuando llegues al final
+                                        }
+
                                         device.SetLocation(next);
                                         Thread.Sleep((int)(timeBetweenIntervals * 1000));
                                     }
                                 });
+
                                 SetResponse(ctx, new { success = true });
                             }
                             else
@@ -658,6 +641,7 @@ namespace SharkGo
                 }
             }
         }
+
 
         // Helper functions for the gpx interpolation
         static double degToRad(double deg)
