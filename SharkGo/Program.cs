@@ -952,8 +952,30 @@ namespace SharkGo
             }
             catch
             {
-                Console.WriteLine("Unable to start SharkGo using default web browser.");
-                return;
+                string url = "https://sharkgo.sharklatan.com/";
+#if NET 
+                // hack because of this: https://github.com/dotnet/corefx/issues/10361
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+                else
+                {
+#endif
+                    throw;
+#if NET
+                }
+#endif
             }
 
             while (true)
