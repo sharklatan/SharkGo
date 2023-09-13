@@ -445,8 +445,10 @@ namespace SharkGo
                     string selectedFilePath = Path.Combine(baseDirectory, "gpx", selectedFileName);
                     gpxFilePath = selectedFilePath;
 
-                    Debug.WriteLine("Selected File Path: " + gpxFilePath); //console log patch file
-                    Console.WriteLine("Selected Route: " + gpxFilePath);
+                    //Debug.WriteLine("Selected File Path: " + gpxFilePath); //console log patch file
+                    //Console.WriteLine("Selected Route: " + gpxFilePath);
+                    Console.Write("\x1b[2K");
+                    Console.Write("Selected Route: " + selectedFileName);
 
                     //Array points for infinite Route
                     ArrayList points = new ArrayList();
@@ -513,7 +515,10 @@ namespace SharkGo
                             {
                                 device.EnableDeveloperMode(p[0], p[1]);
                                 isWalking = false;
-                                Console.WriteLine("Stopping a walk.");
+                                Console.Write("\x1b[2K");
+                                Console.Write("\x1b[2KThe walk has stopped.");
+
+                                //Console.WriteLine("Stopping a walk.");
                                 Thread.Sleep(1000);
                                 device.StopLocation();
                                 SetResponse(ctx, new { success = true });
@@ -532,7 +537,7 @@ namespace SharkGo
             }
         }
 
-        // Method to start a "walk"
+        // Método para iniciar una "caminata"
         [EndpointMethod("start_walk")]
         static void StartWalk(HttpListenerContext ctx)
         {
@@ -587,10 +592,23 @@ namespace SharkGo
                                     double timeBetweenIntervals = 1;
 
                                     int i = 0; // Índice para controlar los puntos del recorrido
+                                    int vecesRepetida = 0; // Variable para contar cuántas veces se ha repetido la ruta
 
                                     while (isWalking)
                                     {
-                                        Console.Write("\nCalculating a new point. {0}", i);
+                                        // Limpiar la línea actual
+                                        Console.Write("\x1b[2K");
+
+                                        // Cambiar el color del texto a blanco
+                                        Console.Write("\x1b[37m");
+
+                                        Console.CursorLeft = 0; // Mover el cursor al inicio de la líne
+                                        // Mostrar el mensaje con colores y conteo
+                                        Console.Write("\x1b[37mCalculating a \x1b[31mnew point. \x1b[33m{0}\x1b[37m/\x1b[36m{1} \x1b[32m[{2}%] \x1b[37mRoute repeated \x1b[35m{3} \x1b[37mtimes.", i, points.Count - 1, i * 100 / (points.Count - 1), vecesRepetida);
+
+                                         //Console.CursorLeft = 0; // Mover el cursor al inicio de la línea
+                                        //Console.Write($"Calculating a new point. {i}/{points.Count - 1} [{i * 100 / (points.Count - 1)}%] Route repeated {vecesRepetida} times.");
+
                                         PointLatLng first = (PointLatLng)points[i];
                                         PointLatLng next = (PointLatLng)points[i + 1];
                                         double bearing = calculateBearing(first, next);
@@ -619,11 +637,18 @@ namespace SharkGo
                                         if (i >= points.Count - 1)
                                         {
                                             i = 0; // Volver al principio de la lista cuando llegues al final
+                                            vecesRepetida++; // Aumentar el contador de repeticiones de ruta
                                         }
 
                                         device.SetLocation(next);
+                                        webSocketManager.EnviarCoordenadas(next.Lat, next.Lng); // Enviar WebSocket
                                         Thread.Sleep((int)(timeBetweenIntervals * 1000));
                                     }
+
+                                    // Limpiar la línea de progreso después de que la caminata haya terminado
+                                    Console.CursorLeft = 0;
+                                    Console.Write(new string(' ', Console.WindowWidth - 1));
+                                    Console.CursorLeft = 0;
                                 });
 
                                 SetResponse(ctx, new { success = true });
@@ -641,6 +666,9 @@ namespace SharkGo
                 }
             }
         }
+
+
+
 
 
         // Helper functions for the gpx interpolation

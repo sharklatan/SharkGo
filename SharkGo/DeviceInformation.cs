@@ -561,7 +561,7 @@ namespace SharkGo {
                 // Obtain a lockdown client handle
                 if (lockdown.lockdownd_client_new_with_handshake(deviceHandle, out lockdownHandle, "SharkGo") !=
                     LockdownError.Success)
-                    throw new Exception("Unable to connect to lockdownd.");
+                    throw new Exception("Unable to connect to lockdownd.");//error
 
                 // Start the simulatelocation service
                 if (lockdown.lockdownd_start_service(lockdownHandle, "com.apple.dt.simulatelocation",
