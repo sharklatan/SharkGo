@@ -131,6 +131,8 @@ namespace SharkGo
             ctx.Response.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
             ctx.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept");
 
+
+
             // Save current devices
             try
             {
@@ -160,6 +162,19 @@ namespace SharkGo
                         udid = d.UDID
                     })
                 );
+                // Obtener la lista de archivos GPX personalizados
+                string basePath = Path.GetFullPath(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+                string directoryPath = Path.Combine(basePath, "gpx", "route", "custom");
+                string[] customGpxFiles = Directory.GetFiles(directoryPath, "*.gpx");
+
+                // Enviar la lista de archivos GPX personalizados al cliente a través del WebSocket
+                if (webSocketManager != null)
+                {
+                    string gpxFilesMessage = JsonConvert.SerializeObject(customGpxFiles);
+                    webSocketManager.EnviarMensaje(gpxFilesMessage);
+                }
+                //custom GPX
+
             }
         }
 
@@ -626,6 +641,9 @@ namespace SharkGo
                                                 break; // Mover al siguiente punto en el gpx
                                             }
                                             device.SetLocation(nextLocation);
+
+                        
+
                                             webSocketManager.EnviarCoordenadas(nextLocation.Lat, nextLocation.Lng); // Enviar WebSocket
 
                                             first = nextLocation;
@@ -1075,7 +1093,16 @@ namespace SharkGo
                     socket.Send(mensaje);
                 }
             }
+
+            public void EnviarMensaje(string mensaje)
+            {
+                foreach (var socket in sockets)
+                {
+                    socket.Send(mensaje);
+                }
+            }
         }
+
         static bool CheckVersion()
         {
             Version assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;

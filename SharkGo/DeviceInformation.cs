@@ -161,8 +161,6 @@ namespace SharkGo {
             {"iPad13,17", "iPad Air 5th Gen (WiFi+Cellular)"},
             {"iPad13,18", "iPad (10th generation)"},
             {"iPad13,19", "iPad (10th generation)"},
-            {"iPad14,1", "iPad mini 6"},
-            {"iPad14,2", "iPad mini 6"},
             {"iPad14,3", "iPad Pro 11-inch (4th generation)"},
             {"iPad14,4", "iPad Pro 11-inch (4th generation)"},
             {"iPad14,5", "iPad Pro 12.9-inch (6th generation)"},
