@@ -66,6 +66,14 @@ namespace SharkGo {
             {"iPhone14,4", "iPhone 13 Mini"},
             {"iPhone14,5", "iPhone 13"},
             {"iPhone14,6", "iPhone SE 3rd Gen"},
+            {"iPhone14,7", "iPhone 14"},
+            {"iPhone14,8", "iPhone 14 Plus"},
+            {"iPhone15,2", "iPhone 14 Pro"},
+            {"iPhone15,3", "iPhone 14 Pro Max"},
+            {"iPhone15,4", "iPhone 15"},
+            {"iPhone15,5", "iPhone 15 Plus"},
+            {"iPhone16,1", "iPhone 15 Pro"},
+            {"iPhone16,2", "iPhone 15 Pro Max"},
 
             {"iPod1,1", "1st Gen iPod"},
             {"iPod2,1", "2nd Gen iPod"},
@@ -150,7 +158,15 @@ namespace SharkGo {
             {"iPad13,10", "iPad Pro 12.9 inch 5th Gen"},
             {"iPad13,11", "iPad Pro 12.9 inch 5th Gen"},
             {"iPad13,16", "iPad Air 5th Gen (WiFi)"},
-            {"iPad13,17", "iPad Air 5th Gen (WiFi+Cellular)"}
+            {"iPad13,17", "iPad Air 5th Gen (WiFi+Cellular)"},
+            {"iPad13,18", "iPad (10th generation)"},
+            {"iPad13,19", "iPad (10th generation)"},
+            {"iPad14,1", "iPad mini 6"},
+            {"iPad14,2", "iPad mini 6"},
+            {"iPad14,3", "iPad Pro 11-inch (4th generation)"},
+            {"iPad14,4", "iPad Pro 11-inch (4th generation)"},
+            {"iPad14,5", "iPad Pro 12.9-inch (6th generation)"},
+            {"iPad14,6", "iPad Pro 12.9-inch (6th generation)"}
         };
 
         public string Name { get; }
