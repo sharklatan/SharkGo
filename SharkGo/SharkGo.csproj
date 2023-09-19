@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net4.8;net6.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>2.0.0.1</Version>
+    <Version>2.0.0.3</Version>
     <LangVersion>latest</LangVersion>
     <ApplicationIcon>mapa.ico</ApplicationIcon>
     <SignAssembly>False</SignAssembly>
