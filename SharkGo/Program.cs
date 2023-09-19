@@ -162,12 +162,18 @@ namespace SharkGo
                         udid = d.UDID
                     })
                 );
-                // Obtener la lista de archivos GPX personalizados
-                string basePath = Path.GetFullPath(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-                string directoryPath = Path.Combine(basePath, "gpx", "route", "custom");
-                string[] customGpxFiles = Directory.GetFiles(directoryPath, "*.gpx");
+                // Obtener la ruta base del ejecutable
+                string basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-                // Enviar la lista de archivos GPX personalizados al cliente a través del WebSocket
+                // Combinar la ruta base con la carpeta relativa
+                string customFolderPath = Path.Combine(basePath, "gpx", "route", "custom");
+
+                // Obtener los nombres de archivo GPX en la carpeta "custom"
+                string[] customGpxFiles = Directory.GetFiles(customFolderPath, "*.gpx")
+                    .Select(file => Path.Combine("custom", Path.GetFileName(file))) // Combinar "custom" con el nombre de archivo
+                    .ToArray();
+
+                // Enviar la lista de nombres de archivos GPX personalizados al cliente a través del WebSocket
                 if (webSocketManager != null)
                 {
                     string gpxFilesMessage = JsonConvert.SerializeObject(customGpxFiles);
@@ -1050,6 +1056,8 @@ namespace SharkGo
         {
             private static List<IWebSocketConnection> sockets = new List<IWebSocketConnection>();
             private static WebSocketServer server;
+            private HashSet<string> sentMessages = new HashSet<string>();
+
 
             public WebSocketManager()
             {
@@ -1096,9 +1104,13 @@ namespace SharkGo
 
             public void EnviarMensaje(string mensaje)
             {
-                foreach (var socket in sockets)
+                if (!sentMessages.Contains(mensaje))
                 {
-                    socket.Send(mensaje);
+                    foreach (var socket in sockets)
+                    {
+                        socket.Send(mensaje);
+                    }
+                    sentMessages.Add(mensaje); // Agregar el mensaje al conjunto de mensajes enviados
                 }
             }
         }
