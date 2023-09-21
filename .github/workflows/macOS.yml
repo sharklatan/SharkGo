@@ -42,6 +42,7 @@ jobs:
           mkdir -p /Users/runner/work/SharkGo/SharkGo/SharkGo.app/Contents/MacOS/bin         
           cp -r /Users/runner/work/SharkGo/SharkGo/SharkGo/bin/Release/net6.0/* /Users/runner/work/SharkGo/SharkGo/SharkGo.app/Contents/MacOS/bin/
           cp /Users/runner/work/SharkGo/SharkGo/SharkGo/bin/Release/net6.0/runtimes/osx-x64/native/* /Users/runner/work/SharkGo/SharkGo/SharkGo.app/Contents/MacOS/bin/
+          mkdir -p /Users/runner/work/SharkGo/SharkGo/SharkGo.app/Contents/MacOS/bin/gpx/route/custom
           rm -r /Users/runner/work/SharkGo/SharkGo/SharkGo.app/Contents/MacOS/bin/runtimes
       - name: List files after copying
         run: ls -R /Users/runner/work/SharkGo/SharkGo/SharkGo.app/
