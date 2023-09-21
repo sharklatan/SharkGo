@@ -34,7 +34,7 @@ jobs:
       - name: Compress Files
         run: |
           cd ./SharkGo/publish/net6.0
-          mkdir -p ./SharkGo/publish/net6.0/gpx/route/custom
+          mkdir -p gpx/route/custom
           tar -czvf ../SharkGoFiles.tar.gz *
           cd ../..
           
