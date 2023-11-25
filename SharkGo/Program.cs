@@ -559,137 +559,138 @@ namespace SharkGo
         }
 
         // Método para iniciar una "caminata"
-        [EndpointMethod("start_walk")]
-        static void StartWalk(HttpListenerContext ctx)
+[EndpointMethod("start_walk")]
+static void StartWalk(HttpListenerContext ctx)
+{
+    // Configurar los encabezados CORS para permitir solicitudes desde https://sharkgo.sharklatan.com/
+    ctx.Response.AddHeader("Access-Control-Allow-Origin", "https://sharkgo.sharklatan.com");
+    ctx.Response.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    ctx.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept");
+
+    if (ctx.Request.Headers["Content-Type"] == "application/json")
+    {
+        using (var sr = new StreamReader(ctx.Request.InputStream, ctx.Request.ContentEncoding))
         {
-            // Configurar los encabezados CORS para permitir solicitudes desde https://sharkgo.sharklatan.com/
-            ctx.Response.AddHeader("Access-Control-Allow-Origin", "https://sharkgo.sharklatan.com");
-            ctx.Response.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-            ctx.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept");
+            // Leer el cuerpo JSON
+            dynamic data = JsonConvert.DeserializeObject<dynamic>(sr.ReadToEnd());
+            DeviceInformation device;
 
-            if (ctx.Request.Headers["Content-Type"] == "application/json")
+            // Encontrar el dispositivo con udid coincidente
+            lock (Devices)
+                device = Devices.FirstOrDefault(d => d.UDID == (string)data.udid);
+
+            // Comprobar si ya tenemos las dependencias
+            if (device == null)
             {
-                using (var sr = new StreamReader(ctx.Request.InputStream, ctx.Request.ContentEncoding))
+                SetResponse(ctx,
+                    new { error = "Unable to find the specified device. Are you sure it is connected?" });
+            }
+            else
+            {
+                try
                 {
-                    // Leer el cuerpo JSON
-                    dynamic data = JsonConvert.DeserializeObject<dynamic>(sr.ReadToEnd());
-                    DeviceInformation device;
-
-                    // Encontrar el dispositivo con udid coincidente
-                    lock (Devices)
-                        device = Devices.FirstOrDefault(d => d.UDID == (string)data.udid);
-
-                    // Comprobar si ya tenemos las dependencias
-                    if (device == null)
+                    // Comprobar si el interruptor de modo desarrollador está visible (en >= iOS 16)
+                    if (device.GetDeveloperModeToggleState() ==
+                        DeviceInformation.DeveloperModeToggleState.Hidden)
                     {
+                        device.EnableDeveloperModeToggle();
                         SetResponse(ctx,
-                            new { error = "Unable to find the specified device. Are you sure it is connected?" });
+                            new
+                            {
+                                error = "Please turn on Developer Mode first via Settings >> Privacy & Security on your device."
+                            });
+                    }
+                    // Asegurarse de que la imagen del desarrollador existe
+                    else if (DeveloperImageHelper.HasImageForDevice(device, out var p))
+                    {
+                        device.EnableDeveloperMode(p[0], p[1]);
+                        ThreadPool.QueueUserWorkItem(delegate
+                        {
+                            isWalking = true;
+                            ArrayList points = getGPX();
+                            ArrayList invertedPoints = new ArrayList(points.Count);
+                            for (int j = points.Count - 1; j >= 0; j--)
+                            {
+                                invertedPoints.Add(points[j]);
+                            }
+
+                            double speed = pathTraversalSpeed;
+                            double timeBetweenIntervals = 1;
+
+                            int i = 0; // Índice para controlar los puntos del recorrido
+                            int vecesRepetida = 0; // Variable para contar cuántas veces se ha repetido la ruta
+
+                            while (isWalking)
+                            {
+                                // Limpiar la línea actual
+                                Console.Write("\x1b[2K");
+
+                                // Cambiar el color del texto a blanco
+                                Console.Write("\x1b[37m");
+
+                                Console.CursorLeft = 0; // Mover el cursor al inicio de la línea
+                                // Mostrar el mensaje con colores y conteo
+                                Console.Write("\x1b[37mCalculating a \x1b[31mnew point. \x1b[33m{0}\x1b[37m/\x1b[36m{1} \x1b[32m[{2}%] \x1b[37mRoute repeated \x1b[35m{3} \x1b[37mtimes.", i, points.Count - 1, i * 100 / (points.Count - 1), vecesRepetida);
+
+                                PointLatLng currentPoint = (PointLatLng)(i % 2 == 0 ? points[i / 2] : invertedPoints[i / 2]);
+                                PointLatLng nextPoint = (PointLatLng)(i % 2 == 0 ? points[i / 2 + 1] : invertedPoints[i / 2 + 1]);
+                                double bearing = calculateBearing(currentPoint, nextPoint);
+                                double travelledSegmentDistance = 0;
+                                double segmentDistance = calculateDistanceBetweenLocations(currentPoint, nextPoint) * 1000; // Convertir a metros
+
+                                while ((travelledSegmentDistance < segmentDistance) && isWalking)
+                                {
+                                    double distanceToTravel = speed * timeBetweenIntervals;
+                                    PointLatLng nextLocation = calculateDestinationLocation(currentPoint, bearing, distanceToTravel / 1000); // La función espera que el argumento de distancia esté en kilómetros
+                                    travelledSegmentDistance += calculateDistanceBetweenLocations(currentPoint, nextLocation) * 1000; // Convertir a metros
+
+                                    if (travelledSegmentDistance > segmentDistance)
+                                    {
+                                        break; // Mover al siguiente punto en el gpx
+                                    }
+                                    device.SetLocation(nextLocation);
+
+                                    webSocketManager.EnviarCoordenadas(nextLocation.Lat, nextLocation.Lng); // Enviar WebSocket
+
+                                    currentPoint = nextLocation;
+                                    Thread.Sleep((int)(timeBetweenIntervals * 1000));
+                                }
+
+                                i++; // Avanzar al siguiente punto
+
+                                if (i >= points.Count * 2 - 2)
+                                {
+                                    i = 0; // Volver al principio de la lista cuando llegues al final
+                                    vecesRepetida++; // Aumentar el contador de repeticiones de ruta
+                                }
+
+                                device.SetLocation(nextPoint);
+                                webSocketManager.EnviarCoordenadas(nextPoint.Lat, nextPoint.Lng); // Enviar WebSocket
+                                Thread.Sleep((int)(timeBetweenIntervals * 1000));
+                            }
+
+                            // Limpiar la línea de progreso después de que la caminata haya terminado
+                            Console.CursorLeft = 0;
+                            Console.Write(new string(' ', Console.WindowWidth - 1));
+                            Console.CursorLeft = 0;
+                        });
+
+                        SetResponse(ctx, new { success = true });
                     }
                     else
                     {
-                        try
-                        {
-                            // Comprobar si el interruptor de modo desarrollador está visible (en >= iOS 16)
-                            if (device.GetDeveloperModeToggleState() ==
-                                DeviceInformation.DeveloperModeToggleState.Hidden)
-                            {
-                                device.EnableDeveloperModeToggle();
-                                SetResponse(ctx,
-                                    new
-                                    {
-                                        error = "Please turn on Developer Mode first via Settings >> Privacy & Security on your device."
-                                    });
-                            }
-                            // Asegurarse de que la imagen del desarrollador existe
-                            else if (DeveloperImageHelper.HasImageForDevice(device, out var p))
-                            {
-                                device.EnableDeveloperMode(p[0], p[1]);
-                                ThreadPool.QueueUserWorkItem(delegate
-                                {
-                                    isWalking = true;
-                                    ArrayList points = getGPX();
-                                    ArrayList interPoints = new ArrayList();
-                                    double speed = pathTraversalSpeed;
-                                    double timeBetweenIntervals = 1;
-
-                                    int i = 0; // Índice para controlar los puntos del recorrido
-                                    int vecesRepetida = 0; // Variable para contar cuántas veces se ha repetido la ruta
-
-                                    while (isWalking)
-                                    {
-                                        // Limpiar la línea actual
-                                        Console.Write("\x1b[2K");
-
-                                        // Cambiar el color del texto a blanco
-                                        Console.Write("\x1b[37m");
-
-                                        Console.CursorLeft = 0; // Mover el cursor al inicio de la líne
-                                        // Mostrar el mensaje con colores y conteo
-                                        Console.Write("\x1b[37mCalculating a \x1b[31mnew point. \x1b[33m{0}\x1b[37m/\x1b[36m{1} \x1b[32m[{2}%] \x1b[37mRoute repeated \x1b[35m{3} \x1b[37mtimes.", i, points.Count - 1, i * 100 / (points.Count - 1), vecesRepetida);
-
-                                         //Console.CursorLeft = 0; // Mover el cursor al inicio de la línea
-                                        //Console.Write($"Calculating a new point. {i}/{points.Count - 1} [{i * 100 / (points.Count - 1)}%] Route repeated {vecesRepetida} times.");
-
-                                        PointLatLng first = (PointLatLng)points[i];
-                                        PointLatLng next = (PointLatLng)points[i + 1];
-                                        double bearing = calculateBearing(first, next);
-                                        double travelledSegmentDistance = 0;
-                                        double segmentDistance = calculateDistanceBetweenLocations(first, next) * 1000; // Convertir a metros
-
-                                        while ((travelledSegmentDistance < segmentDistance) && isWalking)
-                                        {
-                                            double distanceToTravel = speed * timeBetweenIntervals;
-                                            PointLatLng nextLocation = calculateDestinationLocation(first, bearing, distanceToTravel / 1000); // La función espera que el argumento de distancia esté en kilómetros
-                                            travelledSegmentDistance += calculateDistanceBetweenLocations(first, nextLocation) * 1000; // Convertir a metros
-
-                                            if (travelledSegmentDistance > segmentDistance)
-                                            {
-                                                break; // Mover al siguiente punto en el gpx
-                                            }
-                                            device.SetLocation(nextLocation);
-
-                        
-
-                                            webSocketManager.EnviarCoordenadas(nextLocation.Lat, nextLocation.Lng); // Enviar WebSocket
-
-                                            first = nextLocation;
-                                            Thread.Sleep((int)(timeBetweenIntervals * 1000));
-                                        }
-
-                                        i++; // Avanzar al siguiente punto
-
-                                        if (i >= points.Count - 1)
-                                        {
-                                            i = 0; // Volver al principio de la lista cuando llegues al final
-                                            vecesRepetida++; // Aumentar el contador de repeticiones de ruta
-                                        }
-
-                                        device.SetLocation(next);
-                                        webSocketManager.EnviarCoordenadas(next.Lat, next.Lng); // Enviar WebSocket
-                                        Thread.Sleep((int)(timeBetweenIntervals * 1000));
-                                    }
-
-                                    // Limpiar la línea de progreso después de que la caminata haya terminado
-                                    Console.CursorLeft = 0;
-                                    Console.Write(new string(' ', Console.WindowWidth - 1));
-                                    Console.CursorLeft = 0;
-                                });
-
-                                SetResponse(ctx, new { success = true });
-                            }
-                            else
-                            {
-                                throw new Exception("The developer images for the specified device are missing.");
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            SetResponse(ctx, new { error = e.Message });
-                        }
+                        throw new Exception("The developer images for the specified device are missing.");
                     }
+                }
+                catch (Exception e)
+                {
+                    SetResponse(ctx, new { error = e.Message });
                 }
             }
         }
+    }
+}
+
 
 
 
