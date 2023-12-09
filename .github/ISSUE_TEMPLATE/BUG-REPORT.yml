@@ -24,7 +24,7 @@ body:
         - Linux
         - Mac
     validations:
-      required: false   
+      required: true   
 
   - type: dropdown
     id: browsers
@@ -56,8 +56,7 @@ body:
     attributes:
       label: "iOS / iPadOS Version ?:"
       description: Escribe la versión aquí... / Write the version here... 
-      value: |
-        render: bash
+      render: bash
     validations:
       required: true               
 
@@ -67,7 +66,6 @@ body:
       label: "Screenshots"
       description: Adjunta una captura de pantalla si es posible / Attach a screenshot if possible.
       placeholder: Captura del navegador web y ventana de SharkGo / Screenshot of web browser and SharkGo window.
-      render: bash
     validations:
       required: true
 
