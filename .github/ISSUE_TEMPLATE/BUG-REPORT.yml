@@ -56,7 +56,6 @@ body:
     attributes:
       label: "iOS / iPadOS Version ?:"
       description: Escribe la versión aquí... / Write the version here... 
-      multiple: true
       value: |
         render: bash
     validations:
@@ -77,14 +76,9 @@ body:
     attributes:
       label: "iTunes 32/64 Bits (No Microsoft Store)"
       description: iTunes instalado / iTunes installed ?
-      multiple: true
       options:
         - Sí / Yes
         - No / No
         - No lo sé / I don't know
     validations:
       required: true
-
-
-
- 
