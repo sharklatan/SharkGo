@@ -1,0 +1,93 @@
+name: "🐛 Bug Report"
+description: Create a new ticket for a bug.
+title: "🐛 [iOS ?] [Device ? ] - <title>"
+labels: [
+  "bug"
+]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: Breve descripción del problema / Brief description of the issue.
+      placeholder: Explica el problema de forma sencilla / Briefly describe the issue.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: "OS"
+      description: Sistema Operativo PC / PC Operating System?
+      multiple: true
+      options:
+        - Windows
+        - Linux
+        - Mac
+    validations:
+      required: false   
+
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: "Browsers"
+      description: What browsers are you seeing the problem on ?
+      multiple: true
+      options:
+        - Firefox
+        - Chrome
+        - Safari
+        - Microsoft Edge
+        - Opera
+    validations:
+      required: true
+
+  - type: dropdown
+    id: idevice
+    attributes:
+      label: "Dispositivo Apple / Apple Device:"
+      description: Selecciona el dispositivo / Select Apple device
+      multiple: true
+      options:
+        - iPhone
+        - iPad
+    validations:
+      required: true 
+
+  - type: textarea
+    id: version
+    attributes:
+      label: "iOS / iPadOS Version ?:"
+      description: Escribe la versión aquí... / Write the version here... 
+      multiple: true
+      value: |
+        render: bash
+    validations:
+      required: true               
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: "Screenshots"
+      description: Adjunta una captura de pantalla si es posible / Attach a screenshot if possible.
+      placeholder: Captura del navegador web y ventana de SharkGo / Screenshot of web browser and SharkGo window.
+      render: bash
+    validations:
+      required: true
+
+  - type: dropdown
+    id: iTunes
+    attributes:
+      label: "iTunes 32/64 Bits (No Microsoft Store)"
+      description: iTunes instalado / iTunes installed ?
+      multiple: true
+      options:
+        - Sí / Yes
+        - No / No
+        - No lo sé / I don't know
+    validations:
+      required: true
+
+
+
+ 
